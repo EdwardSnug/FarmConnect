@@ -3,3 +3,5 @@ Flask-SQLAlchemy
 Flask-Marshmallow
 marshmallow-sqlalchemy
 Flask-CORS
+requests
+python-dotenv
