@@ -209,7 +209,6 @@ import { useNavigate } from "react-router-dom";
 import "../styles/components.css";
 
 function Checkout({ cartItems }) {
-
     const navigate = useNavigate();
 
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -224,8 +223,13 @@ function Checkout({ cartItems }) {
         0
     );
 
-    const handlePayment = async () => {
+    const totalItems = cartItems.reduce(
+        (total, item) =>
+            total + Number(item.quantity || 1),
+        0
+    );
 
+    const handlePayment = async () => {
         setError("");
 
         if (!phoneNumber.trim()) {
@@ -235,8 +239,7 @@ function Checkout({ cartItems }) {
             return;
         }
 
-        let formattedPhone =
-            phoneNumber.trim();
+        let formattedPhone = phoneNumber.trim();
 
         // 07XXXXXXXX → 2547XXXXXXXX
         if (formattedPhone.startsWith("07")) {
@@ -259,52 +262,48 @@ function Checkout({ cartItems }) {
         }
 
         if (cartItems.length === 0) {
-            setError(
-                "Your cart is empty."
-            );
+            setError("Your cart is empty.");
             return;
         }
 
         setLoading(true);
 
         try {
-
             // --------------------------------
             // 1. CREATE ORDER
             // --------------------------------
 
-            const orderResponse =
-                await fetch(
-                    "http://127.0.0.1:5000/api/orders",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body: JSON.stringify({
-                            customer_id:
-                                "test-customer",
+            const orderResponse = await fetch(
+                "http://127.0.0.1:5000/api/orders",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        customer_id:
+                            "test-customer",
 
-                            phone_number:
-                                formattedPhone,
+                        phone_number:
+                            formattedPhone,
 
-                            items:
-                                cartItems.map(
-                                    (item) => ({
-                                        product_id:
-                                            item.id,
+                        items:
+                            cartItems.map(
+                                (item) => ({
+                                    product_id:
+                                        item.id,
 
-                                        quantity:
-                                            Number(
-                                                item.quantity ||
-                                                1
-                                            )
-                                    })
-                                )
-                        })
-                    }
-                );
+                                    quantity:
+                                        Number(
+                                            item.quantity ||
+                                            1
+                                        )
+                                })
+                            )
+                    })
+                }
+            );
 
             const orderData =
                 await orderResponse.json();
@@ -370,7 +369,6 @@ function Checkout({ cartItems }) {
             );
 
         } catch (err) {
-
             console.error(
                 "Payment error:",
                 err
@@ -379,7 +377,6 @@ function Checkout({ cartItems }) {
             setError(err.message);
 
         } finally {
-
             setLoading(false);
         }
     };
@@ -389,16 +386,45 @@ function Checkout({ cartItems }) {
 
             <div className="checkout-card">
 
-                <h2>
-                    FarmConnect Checkout
-                </h2>
+                {/* HEADER */}
+                <div className="checkout-header">
 
-                <p className="checkout-subtitle">
-                    Review your order before making payment.
-                </p>
+                    <div>
+                        <h2>
+                            FarmConnect Checkout
+                        </h2>
+
+                        <p className="checkout-subtitle">
+                            Review your order before making payment.
+                        </p>
+                    </div>
+
+                    <div className="checkout-secure-badge">
+                        🔒 Secure Checkout
+                    </div>
+
+                </div>
+
+
+                {/* ORDER SUMMARY HEADER */}
+                <div className="checkout-section-heading">
+
+                    <div>
+                        <h3>Order Summary</h3>
+
+                        <span>
+                            {totalItems}{" "}
+                            {totalItems === 1
+                                ? "item"
+                                : "items"}{" "}
+                            in your order
+                        </span>
+                    </div>
+
+                </div>
+
 
                 {/* ORDER ITEMS */}
-
                 <div className="checkout-items">
 
                     {cartItems.map((item) => (
@@ -408,12 +434,30 @@ function Checkout({ cartItems }) {
                             className="checkout-item"
                         >
 
-                            <span>
-                                {item.name} ×{" "}
-                                {item.quantity || 1}
-                            </span>
+                            <div className="checkout-item-info">
 
-                            <span>
+                                <div className="checkout-item-icon">
+                                    🌱
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        {item.name}
+                                    </strong>
+
+                                    <small>
+                                        KSh{" "}
+                                        {Number(
+                                            item.price
+                                        ).toFixed(2)}{" "}
+                                        ×{" "}
+                                        {item.quantity || 1}
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <strong className="checkout-item-price">
                                 KSh{" "}
                                 {(
                                     Number(item.price) *
@@ -421,7 +465,7 @@ function Checkout({ cartItems }) {
                                         item.quantity || 1
                                     )
                                 ).toFixed(2)}
-                            </span>
+                            </strong>
 
                         </div>
 
@@ -429,13 +473,19 @@ function Checkout({ cartItems }) {
 
                 </div>
 
-                {/* TOTAL */}
 
+                {/* TOTAL */}
                 <div className="checkout-total">
 
-                    <strong>
-                        Total Amount
-                    </strong>
+                    <div>
+                        <span>
+                            Total Amount
+                        </span>
+
+                        <small>
+                            Including all selected items
+                        </small>
+                    </div>
 
                     <strong>
                         KSh{" "}
@@ -444,14 +494,32 @@ function Checkout({ cartItems }) {
 
                 </div>
 
-                {/* PAYMENT */}
 
+                {/* PAYMENT SECTION */}
                 <div className="payment-section">
 
+                    <div className="payment-heading">
+
+                        <div>
+                            <h3>
+                                M-Pesa Payment
+                            </h3>
+
+                            <p>
+                                Pay securely using your
+                                M-Pesa mobile number.
+                            </p>
+                        </div>
+
+                        <span className="mpesa-badge">
+                            M-PESA
+                        </span>
+
+                    </div>
+
+
                     <label htmlFor="phone">
-
                         M-Pesa Phone Number
-
                     </label>
 
                     <input
@@ -466,21 +534,18 @@ function Checkout({ cartItems }) {
                         }
                     />
 
-                    <small>
-
-                        You will receive an
-                        M-Pesa payment prompt
-                        on this phone.
-
+                    <small className="payment-help">
+                        You will receive an M-Pesa
+                        payment prompt on this phone.
                     </small>
 
-                    {error && (
 
+                    {error && (
                         <p className="payment-error">
                             {error}
                         </p>
-
                     )}
+
 
                     <button
                         className="mpesa-button"
@@ -490,14 +555,19 @@ function Checkout({ cartItems }) {
                             cartItems.length === 0
                         }
                     >
-
                         {loading
-                            ? "Processing..."
+                            ? "Processing Payment..."
                             : `Pay KSh ${totalAmount.toFixed(
                                   2
                               )} with M-Pesa`}
-
                     </button>
+
+
+                    <div className="payment-security">
+                        🔒 Your payment is processed
+                        securely through M-Pesa.
+                    </div>
+
 
                     <button
                         className="back-button"
@@ -508,9 +578,7 @@ function Checkout({ cartItems }) {
                         }
                         disabled={loading}
                     >
-
-                        Back to Marketplace
-
+                        ← Back to Marketplace
                     </button>
 
                 </div>
