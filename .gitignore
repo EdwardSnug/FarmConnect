@@ -39,3 +39,6 @@ build/
 # Operating system
 .DS_Store
 Thumbs.db
+
+# Firebase Admin credentials
+firebase-admin-key.json

@@ -256,9 +256,9 @@ function PaymentStatus({ onClearCart }) {
 
                 <div className="payment-status-card">
 
-                    <div className="payment-icon">
-                        📱
-                    </div>
+                    {/* <div className="payment-icon">
+                        
+                    </div> */}
 
                     <h2>
                         Waiting for M-Pesa Payment

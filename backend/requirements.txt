@@ -5,3 +5,4 @@ marshmallow-sqlalchemy
 Flask-CORS
 requests
 python-dotenv
+firebase-admin

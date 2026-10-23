@@ -578,7 +578,7 @@ function Checkout({ cartItems }) {
                         }
                         disabled={loading}
                     >
-                        ← Back to Marketplace
+                        Back to Marketplace
                     </button>
 
                 </div>

@@ -1,4 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
+
+from .authentication import firebase_required
 from .extensions import db
 from .models import Product, Order, OrderItem, Payment
 from .schemas import product_schema, products_schema
@@ -15,11 +17,18 @@ def get_products():
 
 # POST a new product
 @products_bp.route("/products", methods=["POST"])
+@firebase_required
 def add_product():
     data = request.get_json()
 
+    if not data:
+        return jsonify({"error": "Request body is required."}), 400
+
     try:
+        # The authenticated user's UID is available in g.firebase_uid
+        owner_uid = g.firebase_uid
         new_product = Product(
+            owner_uid=owner_uid,
             product_name=data["product_name"],
             selected_category=data["selected_category"],
             price=data["price"],
@@ -39,9 +48,17 @@ def add_product():
 
 # PUT (update) product
 @products_bp.route("/products/<int:id>", methods=["PUT"])
+@firebase_required
 def update_product(id):
     product = Product.query.get_or_404(id)
+
+    if product.owner_uid != g.firebase_uid:
+        return jsonify({"error": "You are not authorized to update this product."}), 403
+    
     data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "Request body is required."}), 400
 
     try:
         product.product_name = data.get("product_name", product.product_name)
@@ -62,8 +79,11 @@ def update_product(id):
 
 # DELETE product
 @products_bp.route("/products/<int:id>", methods=["DELETE"])
+@firebase_required
 def delete_product(id):
     product = Product.query.get_or_404(id)
+    if product.owner_uid != g.firebase_uid:
+        return jsonify({"error": "You are not authorized to delete this product."}), 403
     try:
         db.session.delete(product)
         db.session.commit()

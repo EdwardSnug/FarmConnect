@@ -8,11 +8,16 @@ from logic.extensions import db, ma
 from logic.routes import products_bp   # import your Blueprint
 from flask_migrate import Migrate
 from flask_cors import CORS
+from logic.firebase_admin_config import initialize_firebase_admin
 
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+
+    # Initialize Firebase Admin SDK
+    initialize_firebase_admin()
+
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Configure Database URI
